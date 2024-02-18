@@ -1,0 +1,74 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-set-definition-schema.json",
+  "name": "Enforce-ALZ-Sandbox",
+  "properties": {
+    "displayName": "Enforce policies in the Sandbox Landing Zone",
+    "description": "Enforce policies in the Sandbox Landing Zone.",
+    "metadata": {
+      "version": "1.0.0",
+      "alzCloudEnvironments": "[\"AzureCloud\",\"AzureChinaCloud\",\"AzureUSGovernment\"]",
+      "source": "https://github.com/Azure/Enterprise-Scale/",
+      "category": "Sandbox"
+    },
+    "parameters": {
+      "listOfResourceTypesNotAllowed": {
+        "metadata": {
+          "displayName": "Not allowed resource types in the Sandbox landing zone",
+          "description": "Not allowed resource types in the Sandbox landing zone, default is none.",
+          "strongType": "resourceTypes"
+        },
+        "defaultValue": [],
+        "type": "Array"
+      },
+      "effectNotAllowedResources": {
+        "metadata": {
+          "displayName": "Effect",
+          "description": "Enable or disable the execution of the policy"
+        },
+        "allowedValues": [
+          "Audit",
+          "Deny",
+          "Disabled"
+        ],
+        "defaultValue": "Deny",
+        "type": "String"
+      },
+      "effectDenyVnetPeering": {
+        "metadata": {
+          "displayName": "Effect",
+          "description": "Enable or disable the execution of the policy"
+        },
+        "allowedValues": [
+          "Audit",
+          "Deny",
+          "Disabled"
+        ],
+        "defaultValue": "Deny",
+        "type": "String"
+      }
+    },
+    "policyDefinitions": [
+      {
+        "policyDefinitionReferenceId": "SandboxNotAllowed",
+        "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/6c112d4e-5bc7-47ae-a041-ea2d9dccd749",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('effectNotAllowedResources')]"
+          },
+          "listOfResourceTypesNotAllowed": {
+            "value": "[parameters('listOfResourceTypesNotAllowed')]"
+          }
+        }
+      },
+      {
+        "policyDefinitionReferenceId": "SandboxDenyVnetPeering",
+        "policyDefinitionName": "Deny-VNET-Peer-Cross-Sub",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('effectDenyVnetPeering')]"
+          }
+        }
+      }
+    ]
+  }
+}

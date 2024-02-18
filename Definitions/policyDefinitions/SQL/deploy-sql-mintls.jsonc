@@ -1,0 +1,122 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "Deploy-SQL-minTLS",
+  "properties": {
+    "displayName": "SQL servers deploys a specific min TLS version requirement.",
+    "description": "Deploys a specific min TLS version requirement and enforce SSL on SQL servers. Enables secure server to client by enforce  minimal Tls Version to secure the connection between your database server and your client applications helps protect against 'man in the middle' attacks by encrypting the data stream between the server and your application. This configuration enforces that SSL is always enabled for accessing your database server.",
+    "mode": "Indexed",
+    "metadata": {
+      "version": "1.1.0",
+      "alzCloudEnvironments": [
+        "AzureCloud",
+        "AzureChinaCloud",
+        "AzureUSGovernment"
+      ],
+      "source": "https://github.com/Azure/Enterprise-Scale/",
+      "category": "SQL"
+    },
+    "parameters": {
+      "effect": {
+        "allowedValues": [
+          "DeployIfNotExists",
+          "Disabled"
+        ],
+        "defaultValue": "DeployIfNotExists",
+        "metadata": {
+          "description": "Enable or disable the execution of the policy minimum TLS version SQL servers",
+          "displayName": "Effect SQL servers"
+        },
+        "type": "String"
+      },
+      "minimalTlsVersion": {
+        "allowedValues": [
+          "1.2",
+          "1.1",
+          "1.0"
+        ],
+        "defaultValue": "1.2",
+        "metadata": {
+          "description": "Select version minimum TLS version SQL servers to enforce",
+          "displayName": "Select version for SQL server"
+        },
+        "type": "String"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Sql/servers"
+          },
+          {
+            "field": "Microsoft.Sql/servers/minimalTlsVersion",
+            "notequals": "[parameters('minimalTlsVersion')]"
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]",
+        "details": {
+          "type": "Microsoft.Sql/servers",
+          "existenceCondition": {
+            "allOf": [
+              {
+                "field": "Microsoft.Sql/servers/minimalTlsVersion",
+                "equals": "[parameters('minimalTlsVersion')]"
+              }
+            ]
+          },
+          "roleDefinitionIds": [
+            "/providers/microsoft.authorization/roleDefinitions/6d8ee4ec-f05a-4a1d-8b00-a9b17e38b437"
+          ],
+          "deployment": {
+            "properties": {
+              "parameters": {
+                "location": {
+                  "value": "[field('location')]"
+                },
+                "resourceName": {
+                  "value": "[field('name')]"
+                },
+                "minimalTlsVersion": {
+                  "value": "[parameters('minimalTlsVersion')]"
+                }
+              },
+              "mode": "Incremental",
+              "template": {
+                "parameters": {
+                  "location": {
+                    "type": "String"
+                  },
+                  "resourceName": {
+                    "type": "String"
+                  },
+                  "minimalTlsVersion": {
+                    "type": "String"
+                  }
+                },
+                "contentVersion": "1.0.0.0",
+                "resources": [
+                  {
+                    "type": "Microsoft.Sql/servers",
+                    "properties": {
+                      "minimalTlsVersion": "[parameters('minimalTlsVersion')]"
+                    },
+                    "location": "[parameters('location')]",
+                    "apiVersion": "2019-06-01-preview",
+                    "name": "[concat(parameters('resourceName'))]"
+                  }
+                ],
+                "variables": {},
+                "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                "outputs": {}
+              }
+            }
+          },
+          "name": "current"
+        }
+      }
+    }
+  }
+}

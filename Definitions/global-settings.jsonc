@@ -1,0 +1,38 @@
+{
+    "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/global-settings-schema.json",
+    "pacOwnerId": "fd1215a7-93ad-4dfc-a405-2b8f7f5fcc46", // Generate a guid using New-Guid and place it here
+    "managedIdentityLocations": {
+        "*": "australiaeast" // Update the default location for managed identities
+    },
+    "globalNotScopes": {
+        "*": [
+            "/resourceGroupPatterns/excluded-rg*"
+        ]
+    },
+    "pacEnvironments": [
+        {
+            "pacSelector": "epac-prod", // The name or identifier for the PAC environment
+            "cloud": "AzureCloud", // The cloud environment (e.g., AzureCloud, AzureChinaCloud, AzureUSGovernment, AzureGermanCloud)
+            "tenantId": "b11083b1-313a-4f7a-9daa-f8b2f479fe9e", // Replace this with your tenant Id
+            "deploymentRootScope": "/providers/Microsoft.Management/managementGroups/lukegeeknz", // Replace this with a management group that represents the functional root in your environment. 
+            // desiredState is an optional object that specifies the desired state of the environment.
+            "desiredState": { // [optional]
+                // strategy specifies the strategy to achieve the desired state. The default is "full".
+                "strategy": "full", // default full
+                "keepDfcSecurityAssignments": true // default false
+            }
+        },
+        {
+            "pacSelector": "epac-dev", // The name or identifier for the PAC environment
+            "cloud": "AzureCloud", // The cloud environment (e.g., AzureCloud, AzureChinaCloud, AzureUSGovernment, AzureGermanCloud)
+            "tenantId": "b11083b1-313a-4f7a-9daa-f8b2f479fe9e", // Replace this with your tenant Id
+            "deploymentRootScope": "/providers/Microsoft.Management/managementGroups/epac-dev", // Replace this with a management group that represents the functional root in your environment. 
+            // desiredState is an optional object that specifies the desired state of the environment.
+            "desiredState": { // [optional]
+                // strategy specifies the strategy to achieve the desired state. The default is "full".
+                "strategy": "full", // default full
+                "keepDfcSecurityAssignments": true // default false
+            }
+        }
+    ]
+}

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "ca6caaa7-6d90-42db-a051-84ee2aafa605",
+  "properties": {
+    "displayName": "sd",
+    "mode": "Indexed",
+    "metadata": {
+      "category": "Cusstom"
+    },
+    "parameters": {},
+    "policyRule": {
+      "if": {
+        "field": "type",
+        "equals": "Microsoft.Web/sites"
+      },
+      "then": {
+        "effect": "DeployIfNotExists",
+        "details": {
+          "type": "Microsoft.Web/sites/config",
+          "existenceCondition": {
+            "not": {
+              "field": "Microsoft.Web/sites/config/web.ipSecurityRestrictions[*].action",
+              "Equals": "Allow"
+            }
+          },
+          "roleDefinitionIds": [
+            "/providers/Microsoft.Authorization/roleDefinitions/de139f84-1756-47ae-9be6-808fbbe84772"
+          ],
+          "deployment": {
+            "properties": {
+              "parameters": {
+                "name": {
+                  "value": "[field('name')]"
+                }
+              },
+              "mode": "incremental",
+              "template": {
+                "parameters": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "contentVersion": "1.0.0.0",
+                "resources": [
+                  {
+                    "type": "Microsoft.Web/sites/config",
+                    "properties": {
+                      "ipSecurityRestrictions": [
+                        {
+                          "name": "[Your name]",
+                          "priority": 3000,
+                          "action": "Allow",
+                          "ipAddress": "[IP Address CIDR format]"
+                        },
+                        {
+                          "name": "[Your name]",
+                          "priority": 3001,
+                          "action": "Allow",
+                          "ipAddress": "[IP Address CIDR format]"
+                        }
+                      ],
+                      "scmIpSecurityRestrictionsUseMain": true
+                    },
+                    "apiVersion": "2018-11-01",
+                    "name": "[concat(parameters('name'), '/web')]"
+                  }
+                ],
+                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

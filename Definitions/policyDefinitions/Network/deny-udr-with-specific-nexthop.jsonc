@@ -1,0 +1,84 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "Deny-UDR-With-Specific-NextHop",
+  "properties": {
+    "displayName": "User Defined Routes with 'Next Hop Type' set to 'Internet' or 'VirtualNetworkGateway' should be denied",
+    "description": "This policy denies the creation of a User Defined Route with 'Next Hop Type' set to 'Internet' or 'VirtualNetworkGateway'.",
+    "mode": "All",
+    "metadata": {
+      "version": "1.0.0",
+      "alzCloudEnvironments": [
+        "AzureCloud",
+        "AzureChinaCloud",
+        "AzureUSGovernment"
+      ],
+      "source": "https://github.com/Azure/Enterprise-Scale/",
+      "category": "Network"
+    },
+    "parameters": {
+      "effect": {
+        "allowedValues": [
+          "Audit",
+          "Deny",
+          "Disabled"
+        ],
+        "defaultValue": "Deny",
+        "metadata": {
+          "description": "The effect determines what happens when the policy rule is evaluated to match",
+          "displayName": "Effect"
+        },
+        "type": "String"
+      },
+      "excludedDestinations": {
+        "defaultValue": [
+          "Internet",
+          "VirtualNetworkGateway"
+        ],
+        "metadata": {
+          "description": "Array of route destinations that are to be denied",
+          "displayName": "Excluded Destinations"
+        },
+        "type": "Array"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "anyOf": [
+          {
+            "allOf": [
+              {
+                "field": "type",
+                "equals": "Microsoft.Network/routeTables"
+              },
+              {
+                "notEquals": 0,
+                "count": {
+                  "field": "Microsoft.Network/routeTables/routes[*]",
+                  "where": {
+                    "field": "Microsoft.Network/routeTables/routes[*].nextHopType",
+                    "in": "[parameters('excludedDestinations')]"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "allOf": [
+              {
+                "field": "type",
+                "equals": "Microsoft.Network/routeTables/routes"
+              },
+              {
+                "field": "Microsoft.Network/routeTables/routes/nextHopType",
+                "in": "[parameters('excludedDestinations')]"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]"
+      }
+    }
+  }
+}

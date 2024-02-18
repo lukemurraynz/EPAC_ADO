@@ -1,0 +1,95 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "Deny-Subnet-Without-Udr",
+  "properties": {
+    "displayName": "Subnets should have a User Defined Route",
+    "description": "This policy denies the creation of a subnet without a User Defined Route (UDR).",
+    "mode": "All",
+    "metadata": {
+      "version": "2.0.0",
+      "alzCloudEnvironments": [
+        "AzureCloud",
+        "AzureChinaCloud",
+        "AzureUSGovernment"
+      ],
+      "source": "https://github.com/Azure/Enterprise-Scale/",
+      "category": "Network"
+    },
+    "parameters": {
+      "effect": {
+        "allowedValues": [
+          "Audit",
+          "Deny",
+          "Disabled"
+        ],
+        "defaultValue": "Deny",
+        "metadata": {
+          "description": "Enable or disable the execution of the policy",
+          "displayName": "Effect"
+        },
+        "type": "String"
+      },
+      "excludedSubnets": {
+        "defaultValue": [
+          "AzureBastionSubnet"
+        ],
+        "metadata": {
+          "description": "Array of subnet names that are excluded from this policy",
+          "displayName": "Excluded Subnets"
+        },
+        "type": "Array"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "anyOf": [
+          {
+            "allOf": [
+              {
+                "field": "type",
+                "equals": "Microsoft.Network/virtualNetworks"
+              },
+              {
+                "notEquals": 0,
+                "count": {
+                  "field": "Microsoft.Network/virtualNetworks/subnets[*]",
+                  "where": {
+                    "allOf": [
+                      {
+                        "field": "Microsoft.Network/virtualNetworks/subnets[*].routeTable.id",
+                        "exists": "false"
+                      },
+                      {
+                        "field": "Microsoft.Network/virtualNetworks/subnets[*].name",
+                        "notIn": "[parameters('excludedSubnets')]"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "allOf": [
+              {
+                "field": "type",
+                "equals": "Microsoft.Network/virtualNetworks/subnets"
+              },
+              {
+                "field": "name",
+                "notIn": "[parameters('excludedSubnets')]"
+              },
+              {
+                "field": "Microsoft.Network/virtualNetworks/subnets/routeTable.id",
+                "exists": "false"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]"
+      }
+    }
+  }
+}

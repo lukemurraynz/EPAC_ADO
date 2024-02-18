@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-assignment-schema.json",
+  "nodeName": "/root",
+  "definitionEntry": {
+    "policySetName": "Enforce-ALZ-Sandbox",
+    "displayName": "Enforce policies in the Sandbox Landing Zone"
+  },
+  "assignment": {
+    "name": "2514c27debb24f44ad070b9e",
+    "displayName": "Enforce policies in the Sandbox Landing Zone",
+    "description": ""
+  },
+  "metadata": {
+    "assignedBy": "Luke Murray",
+    "parameterScopes": {
+      "listOfResourceTypesNotAllowed": "/providers/Microsoft.Management/managementGroups/Sandbox"
+    }
+  },
+  "overrides": [],
+  "resourceSelectors": [],
+  "scope": {
+    "epac-prod": [
+      "/providers/Microsoft.Management/managementGroups/Sandbox"
+    ]
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "Deploy-Budget",
+  "properties": {
+    "displayName": "Deploy a default budget on all subscriptions under the assigned scope",
+    "description": "Deploy a default budget on all subscriptions under the assigned scope",
+    "mode": "All",
+    "metadata": {
+      "version": "1.1.0",
+      "category": "Budget"
+    },
+    "parameters": {
+      "effect": {
+        "allowedValues": [
+          "DeployIfNotExists",
+          "AuditIfNotExists",
+          "Disabled"
+        ],
+        "defaultValue": "DeployIfNotExists",
+        "metadata": {
+          "description": "Enable or disable the execution of the policy"
+        },
+        "type": "String"
+      },
+      "timeGrain": {
+        "allowedValues": [
+          "Monthly",
+          "Quarterly",
+          "Annually",
+          "BillingMonth",
+          "BillingQuarter",
+          "BillingAnnual"
+        ],
+        "defaultValue": "Monthly",
+        "metadata": {
+          "description": "The time covered by a budget. Tracking of the amount will be reset based on the time grain."
+        },
+        "type": "String"
+      },
+      "contactGroups": {
+        "defaultValue": [],
+        "metadata": {
+          "description": "The list of action groups, in an array, to send the budget notification to when the threshold is exceeded. It accepts array of strings."
+        },
+        "type": "Array"
+      },
+      "contactEmails": {
+        "defaultValue": [],
+        "metadata": {
+          "description": "The list of email addresses, in an array, to send the budget notification to when the threshold is exceeded."
+        },
+        "type": "Array"
+      },
+      "contactRoles": {
+        "defaultValue": [
+          "Owner",
+          "Contributor"
+        ],
+        "metadata": {
+          "description": "The list of contact RBAC roles, in an array, to send the budget notification to when the threshold is exceeded."
+        },
+        "type": "Array"
+      },
+      "secondThreshold": {
+        "defaultValue": "100",
+        "metadata": {
+          "description": "Threshold value associated with a notification. Notification is sent when the cost exceeded the threshold. It is always percent and has to be between 0 and 1000."
+        },
+        "type": "String"
+      },
+      "firstThreshold": {
+        "defaultValue": "90",
+        "metadata": {
+          "description": "Threshold value associated with a notification. Notification is sent when the cost exceeded the threshold. It is always percent and has to be between 0 and 1000."
+        },
+        "type": "String"
+      },
+      "amount": {
+        "defaultValue": "1000",
+        "metadata": {
+          "description": "The total amount of cost or usage to track with the budget"
+        },
+        "type": "String"
+      },
+      "budgetName": {
+        "defaultValue": "budget-set-by-policy",
+        "metadata": {
+          "description": "The name for the budget to be created"
+        },
+        "type": "String"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Resources/subscriptions"
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]",
+        "details": {
+          "type": "Microsoft.Consumption/budgets",
+          "existenceCondition": {
+            "allOf": [
+              {
+                "field": "Microsoft.Consumption/budgets/amount",
+                "equals": "[parameters('amount')]"
+              },
+              {
+                "field": "Microsoft.Consumption/budgets/timeGrain",
+                "equals": "[parameters('timeGrain')]"
+              },
+              {
+                "field": "Microsoft.Consumption/budgets/category",
+                "equals": "Cost"
+              }
+            ]
+          },
+          "roleDefinitionIds": [
+            "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+          ],
+          "deployment": {
+            "properties": {
+              "parameters": {
+                "timeGrain": {
+                  "value": "[parameters('timeGrain')]"
+                },
+                "contactGroups": {
+                  "value": "[parameters('contactGroups')]"
+                },
+                "contactEmails": {
+                  "value": "[parameters('contactEmails')]"
+                },
+                "contactRoles": {
+                  "value": "[parameters('contactRoles')]"
+                },
+                "secondThreshold": {
+                  "value": "[parameters('secondThreshold')]"
+                },
+                "firstThreshold": {
+                  "value": "[parameters('firstThreshold')]"
+                },
+                "amount": {
+                  "value": "[parameters('amount')]"
+                },
+                "budgetName": {
+                  "value": "[parameters('budgetName')]"
+                }
+              },
+              "mode": "Incremental",
+              "template": {
+                "parameters": {
+                  "timeGrain": {
+                    "type": "String"
+                  },
+                  "contactGroups": {
+                    "type": "Array"
+                  },
+                  "contactEmails": {
+                    "type": "Array"
+                  },
+                  "contactRoles": {
+                    "type": "Array"
+                  },
+                  "secondThreshold": {
+                    "type": "String"
+                  },
+                  "firstThreshold": {
+                    "type": "String"
+                  },
+                  "amount": {
+                    "type": "String"
+                  },
+                  "budgetName": {
+                    "type": "String"
+                  },
+                  "startDate": {
+                    "defaultValue": "[concat(utcNow('MM'), '/01/', utcNow('yyyy'))]",
+                    "type": "String"
+                  }
+                },
+                "contentVersion": "1.0.0.0",
+                "resources": [
+                  {
+                    "type": "Microsoft.Consumption/budgets",
+                    "properties": {
+                      "category": "Cost",
+                      "timeGrain": "[parameters('timeGrain')]",
+                      "amount": "[parameters('amount')]",
+                      "notifications": {
+                        "NotificationForExceededBudget2": {
+                          "enabled": true,
+                          "threshold": "[parameters('secondThreshold')]",
+                          "operator": "GreaterThan",
+                          "contactGroups": "[parameters('contactGroups')]",
+                          "contactEmails": "[parameters('contactEmails')]",
+                          "contactRoles": "[parameters('contactRoles')]"
+                        },
+                        "NotificationForExceededBudget1": {
+                          "enabled": true,
+                          "threshold": "[parameters('firstThreshold')]",
+                          "operator": "GreaterThan",
+                          "contactGroups": "[parameters('contactGroups')]",
+                          "contactEmails": "[parameters('contactEmails')]",
+                          "contactRoles": "[parameters('contactRoles')]"
+                        }
+                      },
+                      "timePeriod": {
+                        "startDate": "[parameters('startDate')]"
+                      }
+                    },
+                    "apiVersion": "2019-10-01",
+                    "name": "[parameters('budgetName')]"
+                  }
+                ],
+                "$schema": "http://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json"
+              }
+            },
+            "location": "northeurope"
+          },
+          "existenceScope": "subscription",
+          "deploymentScope": "subscription"
+        }
+      }
+    }
+  }
+}

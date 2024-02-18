@@ -1,0 +1,63 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "Deny-FileServices-InsecureAuth",
+  "properties": {
+    "displayName": "File Services with insecure authentication methods should be denied",
+    "description": "This policy denies the use of insecure authentication methods (NTLMv2) when using File Services on a storage account.",
+    "mode": "All",
+    "metadata": {
+      "version": "1.0.0",
+      "alzCloudEnvironments": [
+        "AzureCloud",
+        "AzureChinaCloud",
+        "AzureUSGovernment"
+      ],
+      "source": "https://github.com/Azure/Enterprise-Scale/",
+      "category": "Storage"
+    },
+    "parameters": {
+      "effect": {
+        "allowedValues": [
+          "Audit",
+          "Deny",
+          "Disabled"
+        ],
+        "defaultValue": "Deny",
+        "metadata": {
+          "description": "The effect determines what happens when the policy rule is evaluated to match",
+          "displayName": "Effect"
+        },
+        "type": "String"
+      },
+      "notAllowedAuthMethods": {
+        "allowedValues": [
+          "NTLMv2",
+          "Kerberos"
+        ],
+        "defaultValue": "NTLMv2",
+        "metadata": {
+          "description": "The list of channelEncryption not allowed.",
+          "displayName": "Authentication methods supported by server. Valid values are NTLMv2, Kerberos."
+        },
+        "type": "String"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "Microsoft.Storage/storageAccounts/fileServices/protocolSettings.smb.authenticationMethods",
+            "contains": "[parameters('notAllowedAuthMethods')]"
+          },
+          {
+            "field": "type",
+            "equals": "Microsoft.Storage/storageAccounts/fileServices"
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]"
+      }
+    }
+  }
+}

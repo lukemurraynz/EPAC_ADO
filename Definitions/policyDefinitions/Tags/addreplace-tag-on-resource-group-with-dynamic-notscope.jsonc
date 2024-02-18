@@ -1,0 +1,98 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "2076e19d-45f9-4564-a459-bb5a0aeaff85",
+  "properties": {
+    "displayName": "Add/Replace Tag on Resource Group with dynamic notScope",
+    "description": "Adds or replaces the specified tag and value when any resource group (not listed in in excludedRg) is created or updated. Existing resource groups can be remediated by triggering a remediation task. ",
+    "mode": "All",
+    "metadata": {
+      "version": "1.0.1",
+      "category": "Tags"
+    },
+    "parameters": {
+      "effect": {
+        "allowedValues": [
+          "Audit",
+          "Deny",
+          "Modify",
+          "Disabled"
+        ],
+        "defaultValue": "Modify",
+        "metadata": {
+          "description": "Enable or disable the execution of the policy",
+          "displayName": "Effect"
+        },
+        "type": "string"
+      },
+      "tagName": {
+        "metadata": {
+          "description": "Name of the tag, such as 'environment'",
+          "displayName": "Tag Name"
+        },
+        "type": "String"
+      },
+      "tagValue": {
+        "metadata": {
+          "description": "Value of the tag, such as 'production'",
+          "displayName": "Tag Value"
+        },
+        "type": "String"
+      },
+      "excludedRG": {
+        "defaultValue": [
+          "synapseworkspace-managedrg-*",
+          "databricks*",
+          "managed-rg-*",
+          "DefaultResourceGroup*",
+          "LogAnalyticsDefaultR*",
+          "NetworkWatcherRG*"
+        ],
+        "metadata": {
+          "description": "This array contains all dynamically excluded RGs from this policy",
+          "displayName": "Excluded Resource Groups"
+        },
+        "type": "Array"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Resources/subscriptions/resourceGroups"
+          },
+          {
+            "field": "[concat('tags[', parameters('tagName'), ']')]",
+            "notEquals": "[parameters('tagValue')]"
+          },
+          {
+            "equals": 0,
+            "count": {
+              "value": "[parameters('excludedRG')]",
+              "name": "excludedRG",
+              "where": {
+                "field": "name",
+                "like": "[current('excludedRG')]"
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]",
+        "details": {
+          "roleDefinitionIds": [
+            "/providers/microsoft.authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+          ],
+          "operations": [
+            {
+              "field": "[concat('tags[', parameters('tagName'), ']')]",
+              "value": "[parameters('tagValue')]",
+              "operation": "addOrReplace"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

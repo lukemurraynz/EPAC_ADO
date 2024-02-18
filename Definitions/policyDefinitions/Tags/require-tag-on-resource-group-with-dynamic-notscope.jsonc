@@ -1,0 +1,78 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "7ce92201-8036-4d55-938e-0dce0a5bc475",
+  "properties": {
+    "displayName": "Require Tag on Resource Group with dynamic notScope",
+    "description": "This policy requires a tag on resource groups when any resource group (not listed in in excludedRg) is created or updated.",
+    "mode": "All",
+    "metadata": {
+      "version": "1.0.1",
+      "category": "Tags"
+    },
+    "parameters": {
+      "effect": {
+        "allowedValues": [
+          "Audit",
+          "Deny",
+          "Disabled"
+        ],
+        "defaultValue": "Audit",
+        "metadata": {
+          "description": "Enable or disable the execution of the policy",
+          "displayName": "Effect"
+        },
+        "type": "string"
+      },
+      "tagName": {
+        "metadata": {
+          "description": "Name of the tag, such as 'environment'",
+          "displayName": "Tag Name"
+        },
+        "type": "String"
+      },
+      "excludedRG": {
+        "defaultValue": [
+          "synapseworkspace-managedrg-*",
+          "databricks*",
+          "LogAnalyticsDefaultR*",
+          "managed-rg-*",
+          "DefaultResourceGroup*",
+          "NetworkWatcherRG*"
+        ],
+        "metadata": {
+          "description": "This array contains all excluded RGs from this policy",
+          "displayName": "Excluded Resource Groups"
+        },
+        "type": "Array"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Resources/subscriptions/resourceGroups"
+          },
+          {
+            "field": "[concat('tags[', parameters('tagName'), ']')]",
+            "exists": "true"
+          },
+          {
+            "equals": 0,
+            "count": {
+              "value": "[parameters('excludedRG')]",
+              "name": "ExcludedRG",
+              "where": {
+                "field": "name",
+                "like": "[current('excludedRG')]"
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]"
+      }
+    }
+  }
+}

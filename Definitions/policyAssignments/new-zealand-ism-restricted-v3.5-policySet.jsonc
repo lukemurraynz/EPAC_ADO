@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-assignment-schema.json",
+  "nodeName": "/root",
+  "definitionEntry": {
+    "policySetId": "/providers/Microsoft.Authorization/policySetDefinitions/93d2179e-3068-c82f-2428-d614ae836a04",
+    "displayName": "New Zealand ISM Restricted v3.5"
+  },
+  "assignment": {
+    "name": "cbf6e36505d040d2b7bd806b",
+    "displayName": "New Zealand ISM Restricted v3.5",
+    "description": ""
+  },
+  "metadata": {
+    "assignedBy": "Luke Murray",
+    "parameterScopes": {}
+  },
+  "overrides": [],
+  "resourceSelectors": [],
+  "scope": {
+    "epac-prod": [
+      "/providers/Microsoft.Management/managementGroups/lukegeeknz"
+    ]
+  }
+}

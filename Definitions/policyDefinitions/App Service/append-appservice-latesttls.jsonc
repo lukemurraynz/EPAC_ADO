@@ -1,0 +1,63 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "Append-AppService-latestTLS",
+  "properties": {
+    "displayName": "AppService append sites with minimum TLS version to enforce.",
+    "description": "Append the AppService sites object to ensure that min Tls version is set to required minimum TLS version. Please note Append does not enforce compliance use then deny.",
+    "mode": "All",
+    "metadata": {
+      "version": "1.0.0",
+      "category": "App Service"
+    },
+    "parameters": {
+      "effect": {
+        "allowedValues": [
+          "Append",
+          "Disabled"
+        ],
+        "defaultValue": "Append",
+        "metadata": {
+          "description": "Enable or disable the execution of the policy",
+          "displayName": "Effect"
+        },
+        "type": "String"
+      },
+      "minTlsVersion": {
+        "allowedValues": [
+          "1.2",
+          "1.0",
+          "1.1"
+        ],
+        "defaultValue": "1.2",
+        "metadata": {
+          "description": "Select version  minimum TLS version for a  Web App config to enforce",
+          "displayName": "Select version minimum TLS Web App config"
+        },
+        "type": "String"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Web/sites/config"
+          },
+          {
+            "field": "Microsoft.Web/sites/config/minTlsVersion",
+            "notEquals": "[parameters('minTlsVersion')]"
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]",
+        "details": [
+          {
+            "field": "Microsoft.Web/sites/config/minTlsVersion",
+            "value": "[parameters('minTlsVersion')]"
+          }
+        ]
+      }
+    }
+  }
+}

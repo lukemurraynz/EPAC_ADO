@@ -1,0 +1,136 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "Deploy-PostgreSQL-sslEnforcement",
+  "properties": {
+    "displayName": "Azure Database for PostgreSQL server deploy a specific min TLS version requirement and enforce SSL ",
+    "description": "Deploy a specific min TLS version requirement and enforce SSL on Azure Database for PostgreSQL server. Enables secure server to client by enforce  minimal Tls Version to secure the connection between your database server and your client applications helps protect against 'man in the middle' attacks by encrypting the data stream between the server and your application. This configuration enforces that SSL is always enabled for accessing your database server.",
+    "mode": "Indexed",
+    "metadata": {
+      "version": "1.1.0",
+      "alzCloudEnvironments": [
+        "AzureCloud",
+        "AzureChinaCloud",
+        "AzureUSGovernment"
+      ],
+      "source": "https://github.com/Azure/Enterprise-Scale/",
+      "category": "SQL"
+    },
+    "parameters": {
+      "effect": {
+        "allowedValues": [
+          "DeployIfNotExists",
+          "Disabled"
+        ],
+        "defaultValue": "DeployIfNotExists",
+        "metadata": {
+          "description": "Enable or disable the execution of the policy minimum TLS version Azure Database for PostgreSQL server",
+          "displayName": "Effect Azure Database for PostgreSQL server"
+        },
+        "type": "String"
+      },
+      "minimalTlsVersion": {
+        "allowedValues": [
+          "TLS1_2",
+          "TLS1_0",
+          "TLS1_1",
+          "TLSEnforcementDisabled"
+        ],
+        "defaultValue": "TLS1_2",
+        "metadata": {
+          "description": "Select version minimum TLS version Azure Database for PostgreSQL server to enforce",
+          "displayName": "Select version for PostgreSQL server"
+        },
+        "type": "String"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.DBforPostgreSQL/servers"
+          },
+          {
+            "anyOf": [
+              {
+                "field": "Microsoft.DBforPostgreSQL/servers/sslEnforcement",
+                "notEquals": "Enabled"
+              },
+              {
+                "field": "Microsoft.DBforPostgreSQL/servers/minimalTlsVersion",
+                "notEquals": "[parameters('minimalTlsVersion')]"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]",
+        "details": {
+          "type": "Microsoft.DBforPostgreSQL/servers",
+          "existenceCondition": {
+            "allOf": [
+              {
+                "field": "Microsoft.DBforPostgreSQL/servers/sslEnforcement",
+                "equals": "Enabled"
+              },
+              {
+                "field": "Microsoft.DBforPostgreSQL/servers/minimalTlsVersion",
+                "equals": "[parameters('minimalTlsVersion')]"
+              }
+            ]
+          },
+          "roleDefinitionIds": [
+            "/providers/microsoft.authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+          ],
+          "deployment": {
+            "properties": {
+              "parameters": {
+                "location": {
+                  "value": "[field('location')]"
+                },
+                "resourceName": {
+                  "value": "[field('name')]"
+                },
+                "minimalTlsVersion": {
+                  "value": "[parameters('minimalTlsVersion')]"
+                }
+              },
+              "mode": "Incremental",
+              "template": {
+                "parameters": {
+                  "location": {
+                    "type": "String"
+                  },
+                  "resourceName": {
+                    "type": "String"
+                  },
+                  "minimalTlsVersion": {
+                    "type": "String"
+                  }
+                },
+                "contentVersion": "1.0.0.0",
+                "resources": [
+                  {
+                    "type": "Microsoft.DBforPostgreSQL/servers",
+                    "properties": {
+                      "minimalTlsVersion": "[parameters('minimalTlsVersion')]",
+                      "sslEnforcement": "[if(equals(parameters('minimalTlsVersion'), 'TLSEnforcementDisabled'),'Disabled', 'Enabled')]"
+                    },
+                    "location": "[parameters('location')]",
+                    "apiVersion": "2017-12-01",
+                    "name": "[concat(parameters('resourceName'))]"
+                  }
+                ],
+                "variables": {},
+                "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                "outputs": {}
+              }
+            }
+          },
+          "name": "current"
+        }
+      }
+    }
+  }
+}

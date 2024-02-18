@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "DenyAction-DiagnosticLogs",
+  "properties": {
+    "displayName": "DenyAction implementation on Diagnostic Logs.",
+    "description": "DenyAction implementation on Diagnostic Logs.",
+    "mode": "Indexed",
+    "metadata": {
+      "deprecated": false,
+      "version": "1.0.0",
+      "alzCloudEnvironments": [
+        "AzureCloud",
+        "AzureChinaCloud",
+        "AzureUSGovernment"
+      ],
+      "source": "https://github.com/Azure/Enterprise-Scale/",
+      "category": "Monitoring"
+    },
+    "parameters": {},
+    "policyRule": {
+      "if": {
+        "field": "type",
+        "equals": "Microsoft.Insights/diagnosticSettings"
+      },
+      "then": {
+        "effect": "denyAction",
+        "details": {
+          "actionNames": [
+            "delete"
+          ]
+        }
+      }
+    }
+  }
+}

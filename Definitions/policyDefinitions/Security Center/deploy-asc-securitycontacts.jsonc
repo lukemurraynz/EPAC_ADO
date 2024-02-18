@@ -1,0 +1,120 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "Deploy-ASC-SecurityContacts",
+  "properties": {
+    "displayName": "Deploy Azure Security Center Security Contacts",
+    "description": "Deploy Azure Security Center Security Contacts",
+    "mode": "All",
+    "metadata": {
+      "version": "1.0.0",
+      "category": "Security Center"
+    },
+    "parameters": {
+      "effect": {
+        "allowedValues": [
+          "DeployIfNotExists",
+          "Disabled"
+        ],
+        "defaultValue": "DeployIfNotExists",
+        "metadata": {
+          "description": "Enable or disable the execution of the policy",
+          "displayName": "Effect"
+        },
+        "type": "string"
+      },
+      "emailSecurityContact": {
+        "metadata": {
+          "description": "Provide email address for Azure Security Center contact details",
+          "displayName": "Security contacts email address"
+        },
+        "type": "string"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Resources/subscriptions"
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]",
+        "details": {
+          "type": "Microsoft.Security/securityContacts",
+          "existenceCondition": {
+            "allOf": [
+              {
+                "field": "Microsoft.Security/securityContacts/email",
+                "contains": "[parameters('emailSecurityContact')]"
+              },
+              {
+                "field": "type",
+                "equals": "Microsoft.Security/securityContacts"
+              },
+              {
+                "field": "Microsoft.Security/securityContacts/alertNotifications",
+                "equals": "On"
+              },
+              {
+                "field": "Microsoft.Security/securityContacts/alertsToAdmins",
+                "equals": "On"
+              }
+            ]
+          },
+          "roleDefinitionIds": [
+            "/providers/Microsoft.Authorization/roleDefinitions/fb1c8493-542b-48eb-b624-b4c8fea62acd"
+          ],
+          "deployment": {
+            "properties": {
+              "parameters": {
+                "emailSecurityContact": {
+                  "value": "[parameters('emailSecurityContact')]"
+                }
+              },
+              "mode": "incremental",
+              "template": {
+                "parameters": {
+                  "emailSecurityContact": {
+                    "metadata": {
+                      "description": "Security contacts email address"
+                    },
+                    "type": "string"
+                  }
+                },
+                "contentVersion": "1.0.0.0",
+                "resources": [
+                  {
+                    "type": "Microsoft.Security/securityContacts",
+                    "properties": {
+                      "alertNotifications": {
+                        "minimalSeverity": "High",
+                        "state": "On"
+                      },
+                      "notificationsByRole": {
+                        "state": "On",
+                        "roles": [
+                          "Owner"
+                        ]
+                      },
+                      "emails": "[parameters('emailSecurityContact')]"
+                    },
+                    "apiVersion": "2020-01-01-preview",
+                    "name": "default"
+                  }
+                ],
+                "variables": {},
+                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                "outputs": {}
+              }
+            },
+            "location": "northeurope"
+          },
+          "existenceScope": "subscription",
+          "deploymentScope": "subscription"
+        }
+      }
+    }
+  }
+}

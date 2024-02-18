@@ -1,0 +1,89 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "90c1d98c-7ad3-4ea3-89c4-6abd261e437",
+  "properties": {
+    "displayName": "MDC Workload Protection Enrollment",
+    "description": "Enroll subscriptions in a specific Microsoft Defender for Cloud Workload Protection.",
+    "mode": "All",
+    "metadata": {
+      "version": "1.0.2",
+      "category": "Security Center"
+    },
+    "parameters": {
+      "effect": {
+        "allowedValues": [
+          "DeployIfNotExists",
+          "AuditIfNotExists",
+          "Disabled"
+        ],
+        "defaultValue": "DeployIfNotExists",
+        "metadata": {
+          "description": "Deploy the execution of the policy",
+          "displayName": "Effect"
+        },
+        "type": "String"
+      },
+      "workLoadProtection": {
+        "defaultValue": "Arm",
+        "metadata": {
+          "description": "Valid choices (om 7/27/2023) are: AppServices, Arm, ContainerRegistry, Containers, CloudPosture, Dns, KeyVaults, KubernetesService, OpenSourceRelationalDatabases, VirtualMachines. Do not use this Policy (use built-in Policies instead) for SQL and Storage",
+          "displayName": "Defender workload protection name"
+        },
+        "type": "String"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "field": "type",
+        "equals": "Microsoft.Resources/subscriptions"
+      },
+      "then": {
+        "effect": "[parameters('effect')]",
+        "details": {
+          "type": "Microsoft.Security/pricings",
+          "existenceCondition": {
+            "field": "Microsoft.Security/pricings/pricingTier",
+            "equals": "Standard"
+          },
+          "roleDefinitionIds": [
+            "/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635"
+          ],
+          "deployment": {
+            "properties": {
+              "parameters": {
+                "workLoadProtection": {
+                  "value": "[parameters('workLoadProtection')]"
+                }
+              },
+              "mode": "incremental",
+              "template": {
+                "parameters": {
+                  "resourceProvider": {
+                    "type": "String"
+                  }
+                },
+                "contentVersion": "1.0.0.0",
+                "resources": [
+                  {
+                    "type": "Microsoft.Security/pricings",
+                    "properties": {
+                      "pricingTier": "Standard"
+                    },
+                    "apiVersion": "2023-01-01",
+                    "name": "[parameters('workLoadProtection')]"
+                  }
+                ],
+                "variables": {},
+                "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#"
+              }
+            },
+            "location": "eastus2"
+          },
+          "name": "[parameters('workLoadProtection')]",
+          "existenceScope": "Subscription",
+          "deploymentScope": "Subscription"
+        }
+      }
+    }
+  }
+}

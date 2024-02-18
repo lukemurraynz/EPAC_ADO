@@ -1,0 +1,147 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "Deploy-DDoSProtection",
+  "properties": {
+    "displayName": "Deploy an Azure DDoS Network Protection",
+    "description": "Deploys an Azure DDoS Network Protection",
+    "mode": "All",
+    "metadata": {
+      "version": "1.0.1",
+      "alzCloudEnvironments": [
+        "AzureCloud",
+        "AzureChinaCloud",
+        "AzureUSGovernment"
+      ],
+      "source": "https://github.com/Azure/Enterprise-Scale/",
+      "category": "Network"
+    },
+    "parameters": {
+      "effect": {
+        "allowedValues": [
+          "DeployIfNotExists",
+          "Disabled"
+        ],
+        "defaultValue": "DeployIfNotExists",
+        "metadata": {
+          "description": "Enable or disable the execution of the policy",
+          "displayName": "Effect"
+        },
+        "type": "String"
+      },
+      "rgName": {
+        "metadata": {
+          "description": "Provide name for resource group.",
+          "displayName": "rgName"
+        },
+        "type": "String"
+      },
+      "ddosRegion": {
+        "metadata": {
+          "description": "DDoSVnet location",
+          "displayName": "ddosRegion",
+          "strongType": "location"
+        },
+        "type": "String"
+      },
+      "ddosName": {
+        "metadata": {
+          "description": "DDoSVnet",
+          "displayName": "ddosName"
+        },
+        "type": "String"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Resources/subscriptions"
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]",
+        "details": {
+          "type": "Microsoft.Network/ddosProtectionPlans",
+          "roleDefinitionIds": [
+            "/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7"
+          ],
+          "deployment": {
+            "properties": {
+              "parameters": {
+                "rgName": {
+                  "value": "[parameters('rgName')]"
+                },
+                "ddosname": {
+                  "value": "[parameters('ddosname')]"
+                },
+                "ddosregion": {
+                  "value": "[parameters('ddosRegion')]"
+                }
+              },
+              "mode": "Incremental",
+              "template": {
+                "parameters": {
+                  "rgName": {
+                    "type": "String"
+                  },
+                  "ddosRegion": {
+                    "type": "String"
+                  },
+                  "ddosname": {
+                    "type": "String"
+                  }
+                },
+                "contentVersion": "1.0.0.0",
+                "resources": [
+                  {
+                    "type": "Microsoft.Resources/resourceGroups",
+                    "properties": {},
+                    "location": "[deployment().location]",
+                    "apiVersion": "2018-05-01",
+                    "name": "[parameters('rgName')]"
+                  },
+                  {
+                    "resourceGroup": "[parameters('rgName')]",
+                    "type": "Microsoft.Resources/deployments",
+                    "properties": {
+                      "mode": "Incremental",
+                      "template": {
+                        "parameters": {},
+                        "contentVersion": "1.0.0.0",
+                        "resources": [
+                          {
+                            "type": "Microsoft.Network/ddosProtectionPlans",
+                            "properties": {},
+                            "location": "[parameters('ddosRegion')]",
+                            "apiVersion": "2019-12-01",
+                            "name": "[parameters('ddosName')]"
+                          }
+                        ],
+                        "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+                        "outputs": {}
+                      }
+                    },
+                    "apiVersion": "2018-05-01",
+                    "name": "ddosprotection",
+                    "dependsOn": [
+                      "[resourceId('Microsoft.Resources/resourceGroups/', parameters('rgName'))]"
+                    ]
+                  }
+                ],
+                "$schema": "http://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json",
+                "outputs": {}
+              }
+            },
+            "location": "northeurope"
+          },
+          "name": "[parameters('ddosName')]",
+          "existenceScope": "resourceGroup",
+          "deploymentScope": "subscription",
+          "resourceGroupName": "[parameters('rgName')]"
+        }
+      }
+    }
+  }
+}

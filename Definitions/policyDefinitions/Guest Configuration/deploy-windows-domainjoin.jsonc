@@ -1,0 +1,252 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "Deploy-Windows-DomainJoin",
+  "properties": {
+    "displayName": "Deploy Windows Domain Join Extension with keyvault configuration",
+    "description": "Deploy Windows Domain Join Extension with keyvault configuration when the extension does not exist on a given windows Virtual Machine",
+    "mode": "Indexed",
+    "metadata": {
+      "version": "1.0.0",
+      "category": "Guest Configuration"
+    },
+    "parameters": {
+      "effect": {
+        "allowedValues": [
+          "DeployIfNotExists",
+          "Disabled"
+        ],
+        "defaultValue": "DeployIfNotExists",
+        "metadata": {
+          "description": "Enable or disable the execution of the policy",
+          "displayName": "Effect"
+        },
+        "type": "String"
+      },
+      "keyVaultResourceId": {
+        "metadata": {
+          "displayName": "keyVaultResourceId"
+        },
+        "type": "String"
+      },
+      "domainPassword": {
+        "metadata": {
+          "displayName": "domainPassword"
+        },
+        "type": "String"
+      },
+      "domainUsername": {
+        "metadata": {
+          "displayName": "domainUsername"
+        },
+        "type": "String"
+      },
+      "domainOUPath": {
+        "metadata": {
+          "displayName": "domainOUPath"
+        },
+        "type": "String"
+      },
+      "domainFQDN": {
+        "metadata": {
+          "displayName": "domainFQDN"
+        },
+        "type": "String"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Compute/virtualMachines"
+          },
+          {
+            "field": "Microsoft.Compute/imagePublisher",
+            "equals": "MicrosoftWindowsServer"
+          },
+          {
+            "field": "Microsoft.Compute/imageOffer",
+            "equals": "WindowsServer"
+          },
+          {
+            "field": "Microsoft.Compute/imageSKU",
+            "in": [
+              "2008-R2-SP1",
+              "2008-R2-SP1-smalldisk",
+              "2008-R2-SP1-zhcn",
+              "2012-Datacenter",
+              "2012-datacenter-gensecond",
+              "2012-Datacenter-smalldisk",
+              "2012-datacenter-smalldisk-g2",
+              "2012-Datacenter-zhcn",
+              "2012-datacenter-zhcn-g2",
+              "2012-R2-Datacenter",
+              "2012-r2-datacenter-gensecond",
+              "2012-R2-Datacenter-smalldisk",
+              "2012-r2-datacenter-smalldisk-g2",
+              "2012-R2-Datacenter-zhcn",
+              "2012-r2-datacenter-zhcn-g2",
+              "2016-Datacenter",
+              "2016-datacenter-gensecond",
+              "2016-datacenter-gs",
+              "2016-Datacenter-Server-Core",
+              "2016-datacenter-server-core-g2",
+              "2016-Datacenter-Server-Core-smalldisk",
+              "2016-datacenter-server-core-smalldisk-g2",
+              "2016-Datacenter-smalldisk",
+              "2016-datacenter-smalldisk-g2",
+              "2016-Datacenter-with-Containers",
+              "2016-datacenter-with-containers-g2",
+              "2016-Datacenter-with-RDSH",
+              "2016-Datacenter-zhcn",
+              "2016-datacenter-zhcn-g2",
+              "2019-Datacenter",
+              "2019-Datacenter-Core",
+              "2019-datacenter-core-g2",
+              "2019-Datacenter-Core-smalldisk",
+              "2019-datacenter-core-smalldisk-g2",
+              "2019-Datacenter-Core-with-Containers",
+              "2019-datacenter-core-with-containers-g2",
+              "2019-Datacenter-Core-with-Containers-smalldisk",
+              "2019-datacenter-core-with-containers-smalldisk-g2",
+              "2019-datacenter-gensecond",
+              "2019-datacenter-gs",
+              "2019-Datacenter-smalldisk",
+              "2019-datacenter-smalldisk-g2",
+              "2019-Datacenter-with-Containers",
+              "2019-datacenter-with-containers-g2",
+              "2019-Datacenter-with-Containers-smalldisk",
+              "2019-datacenter-with-containers-smalldisk-g2",
+              "2019-Datacenter-zhcn",
+              "2019-datacenter-zhcn-g2",
+              "Datacenter-Core-1803-with-Containers-smalldisk",
+              "datacenter-core-1803-with-containers-smalldisk-g2",
+              "Datacenter-Core-1809-with-Containers-smalldisk",
+              "datacenter-core-1809-with-containers-smalldisk-g2",
+              "Datacenter-Core-1903-with-Containers-smalldisk",
+              "datacenter-core-1903-with-containers-smalldisk-g2",
+              "datacenter-core-1909-with-containers-smalldisk",
+              "datacenter-core-1909-with-containers-smalldisk-g1",
+              "datacenter-core-1909-with-containers-smalldisk-g2"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]",
+        "details": {
+          "type": "Microsoft.Compute/virtualMachines/extensions",
+          "existenceCondition": {
+            "allOf": [
+              {
+                "field": "Microsoft.Compute/virtualMachines/extensions/type",
+                "equals": "JsonADDomainExtension"
+              },
+              {
+                "field": "Microsoft.Compute/virtualMachines/extensions/publisher",
+                "equals": "Microsoft.Compute"
+              }
+            ]
+          },
+          "roleDefinitionIds": [
+            "/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c"
+          ],
+          "deployment": {
+            "properties": {
+              "parameters": {
+                "location": {
+                  "value": "[field('location')]"
+                },
+                "vmName": {
+                  "value": "[field('name')]"
+                },
+                "keyVaultResourceId": {
+                  "value": "[parameters('keyVaultResourceId')]"
+                },
+                "domainPassword": {
+                  "reference": {
+                    "secretName": "[parameters('domainPassword')]",
+                    "keyVault": {
+                      "id": "[parameters('keyVaultResourceId')]"
+                    }
+                  }
+                },
+                "domainUsername": {
+                  "reference": {
+                    "secretName": "[parameters('domainUsername')]",
+                    "keyVault": {
+                      "id": "[parameters('keyVaultResourceId')]"
+                    }
+                  }
+                },
+                "domainOUPath": {
+                  "value": "[parameters('domainOUPath')]"
+                },
+                "domainFQDN": {
+                  "value": "[parameters('domainFQDN')]"
+                }
+              },
+              "mode": "Incremental",
+              "template": {
+                "parameters": {
+                  "location": {
+                    "type": "String"
+                  },
+                  "vmName": {
+                    "type": "String"
+                  },
+                  "keyVaultResourceId": {
+                    "type": "String"
+                  },
+                  "domainPassword": {
+                    "type": "securestring"
+                  },
+                  "domainUsername": {
+                    "type": "String"
+                  },
+                  "domainOUPath": {
+                    "type": "String"
+                  },
+                  "domainFQDN": {
+                    "type": "String"
+                  }
+                },
+                "contentVersion": "1.0.0.0",
+                "resources": [
+                  {
+                    "type": "Microsoft.Compute/virtualMachines/extensions",
+                    "properties": {
+                      "type": "JsonADDomainExtension",
+                      "autoUpgradeMinorVersion": true,
+                      "typeHandlerVersion": "1.3",
+                      "protectedSettings": {
+                        "Password": "[parameters('domainPassword')]"
+                      },
+                      "publisher": "Microsoft.Compute",
+                      "settings": {
+                        "Options": "[variables('domainJoinOptions')]",
+                        "Restart": "true",
+                        "OUPath": "[parameters('domainOUPath')]",
+                        "Name": "[parameters('domainFQDN')]",
+                        "User": "[parameters('domainUserName')]"
+                      }
+                    },
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2015-06-15",
+                    "name": "[concat(variables('vmName'),'/joindomain')]"
+                  }
+                ],
+                "variables": {
+                  "vmName": "[parameters('vmName')]",
+                  "domainJoinOptions": 3
+                },
+                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                "outputs": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

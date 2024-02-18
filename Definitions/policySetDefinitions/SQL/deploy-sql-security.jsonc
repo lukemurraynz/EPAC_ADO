@@ -1,0 +1,122 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-set-definition-schema.json",
+  "name": "Deploy-Sql-Security",
+  "properties": {
+    "displayName": "Deploy SQL Database built-in SQL security configuration",
+    "description": "Deploy auditing, Alert, TDE and SQL vulnerability to SQL Databases when it not exist in the deployment",
+    "metadata": {
+      "version": "1.0.0",
+      "alzCloudEnvironments": "[\"AzureCloud\",\"AzureChinaCloud\",\"AzureUSGovernment\"]",
+      "source": "https://github.com/Azure/Enterprise-Scale/",
+      "category": "SQL"
+    },
+    "parameters": {
+      "vulnerabilityAssessmentsStorageID": {
+        "metadata": {
+          "displayName": "The storage account ID to store assessments",
+          "description": "The storage account ID to store assessments"
+        },
+        "type": "String"
+      },
+      "vulnerabilityAssessmentsEmail": {
+        "metadata": {
+          "displayName": "The email address to send alerts",
+          "description": "The email address to send alerts"
+        },
+        "type": "String"
+      },
+      "SqlDbVulnerabilityAssessmentsDeploySqlSecurityEffect": {
+        "metadata": {
+          "displayName": "Deploy SQL Database vulnerability Assessments",
+          "description": "Deploy SQL Database vulnerability Assessments when it not exist in the deployment. To the specific  storage account in the parameters"
+        },
+        "allowedValues": [
+          "DeployIfNotExists",
+          "Disabled"
+        ],
+        "defaultValue": "DeployIfNotExists",
+        "type": "String"
+      },
+      "SqlDbSecurityAlertPoliciesDeploySqlSecurityEffect": {
+        "metadata": {
+          "displayName": "Deploy SQL Database security Alert Policies configuration with email admin accounts",
+          "description": "Deploy the security Alert Policies configuration with email admin accounts when it not exist in current configuration"
+        },
+        "allowedValues": [
+          "DeployIfNotExists",
+          "Disabled"
+        ],
+        "defaultValue": "DeployIfNotExists",
+        "type": "String"
+      },
+      "SqlDbAuditingSettingsDeploySqlSecurityEffect": {
+        "metadata": {
+          "displayName": "Deploy SQL database auditing settings",
+          "description": "Deploy auditing settings to SQL Database when it not exist in the deployment"
+        },
+        "allowedValues": [
+          "DeployIfNotExists",
+          "Disabled"
+        ],
+        "defaultValue": "DeployIfNotExists",
+        "type": "String"
+      },
+      "SqlDbTdeDeploySqlSecurityEffect": {
+        "metadata": {
+          "displayName": "Deploy SQL Database Transparent Data Encryption ",
+          "description": "Deploy the Transparent Data Encryption when it is not enabled in the deployment"
+        },
+        "allowedValues": [
+          "DeployIfNotExists",
+          "Disabled"
+        ],
+        "defaultValue": "DeployIfNotExists",
+        "type": "String"
+      }
+    },
+    "policyDefinitions": [
+      {
+        "policyDefinitionReferenceId": "SqlDbTdeDeploySqlSecurity",
+        "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/86a912f6-9a06-4e26-b447-11b16ba8659f",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('SqlDbTdeDeploySqlSecurityEffect')]"
+          }
+        }
+      },
+      {
+        "policyDefinitionReferenceId": "SqlDbSecurityAlertPoliciesDeploySqlSecurity",
+        "policyDefinitionName": "Deploy-Sql-SecurityAlertPolicies",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('SqlDbSecurityAlertPoliciesDeploySqlSecurityEffect')]"
+          }
+        }
+      },
+      {
+        "policyDefinitionReferenceId": "SqlDbAuditingSettingsDeploySqlSecurity",
+        "policyDefinitionName": "Deploy-Sql-AuditingSettings",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('SqlDbAuditingSettingsDeploySqlSecurityEffect')]"
+          }
+        }
+      },
+      {
+        "policyDefinitionReferenceId": "SqlDbVulnerabilityAssessmentsDeploySqlSecurity",
+        "policyDefinitionName": "Deploy-Sql-vulnerabilityAssessments",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('SqlDbVulnerabilityAssessmentsDeploySqlSecurityEffect')]"
+          },
+          "vulnerabilityAssessmentsStorageID": {
+            "value": "[parameters('vulnerabilityAssessmentsStorageID')]"
+          },
+          "vulnerabilityAssessmentsEmail": {
+            "value": "[parameters('vulnerabilityAssessmentsEmail')]"
+          }
+        }
+      }
+    ]
+  }
+}

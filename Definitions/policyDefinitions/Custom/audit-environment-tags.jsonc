@@ -1,0 +1,48 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-definition-schema.json",
+  "name": "5b80d73b-31c2-430d-9e28-b9c85a59c030",
+  "properties": {
+    "displayName": "Audit Environment Tags",
+    "mode": "All",
+    "metadata": {
+      "category": "Custom"
+    },
+    "parameters": {
+      "envTagName": {
+        "metadata": {
+          "description": "Name of the tag, such as 'environment'",
+          "displayName": "Environment Tag Name"
+        },
+        "defaultValue": "Environment",
+        "type": "String"
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Resources/subscriptions/resourceGroups"
+          },
+          {
+            "notEquals": 0,
+            "count": {
+              "value": [
+                "Dev",
+                "Stg",
+                "Prod"
+              ],
+              "where": {
+                "field": "[concat('tags[', parameters('envTagName'), ']')]",
+                "notEquals": "[current()]"
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "effect": "Audit"
+      }
+    }
+  }
+}

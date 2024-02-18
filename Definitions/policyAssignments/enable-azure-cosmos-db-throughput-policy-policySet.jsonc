@@ -1,0 +1,27 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/enterprise-azure-policy-as-code/main/Schemas/policy-assignment-schema.json",
+  "nodeName": "/root",
+  "definitionEntry": {
+    "policySetId": "/providers/Microsoft.Authorization/policySetDefinitions/cb5e1e90-7c33-491c-a15b-24885c915752",
+    "displayName": "Enable Azure Cosmos DB throughput policy"
+  },
+  "assignment": {
+    "name": "9d5c556910db4553b4b4bd89",
+    "displayName": "Enable Azure Cosmos DB throughput policy",
+    "description": ""
+  },
+  "metadata": {
+    "assignedBy": "Luke Murray",
+    "parameterScopes": {}
+  },
+  "parameters": {
+    "throughputMax": 50
+  },
+  "overrides": [],
+  "resourceSelectors": [],
+  "scope": {
+    "epac-prod": [
+      "/providers/Microsoft.Management/managementGroups/lukegeeknz"
+    ]
+  }
+}
